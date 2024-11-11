@@ -1,0 +1,170 @@
+package com.category.service;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+import com.category.entity.Category;
+import com.category.exception.ResourceNotFoundException;
+import com.category.repo.CategoryRepo;
+
+import jakarta.validation.constraints.AssertTrue;
+
+@SpringBootTest
+@ExtendWith(MockitoExtension.class)
+public class CategoryServiceTest {
+
+	@Mock
+	private CategoryRepo repo;
+
+	@InjectMocks
+	private CategoryService service;
+
+	@Test
+	public void saveCategory_success() {
+		Category category = new Category(1,"laptop","laptop");
+		when(repo.save(category)).thenReturn(category);
+
+		String message = service.saveCategory(category);
+		assertEquals("Category Saved Succesfully", message);
+	}
+
+	@Test
+	public void saveCategoryWithChildrenTest() throws ResourceNotFoundException {
+		Category category = new Category(1,"laptop","laptop");
+		Category sub = new Category("Memory",category);
+		List<Category> list=new ArrayList<>();
+		list.add(sub);
+		when(repo.findById(1)).thenReturn(Optional.of(category));
+		when(repo.saveAll(list)).thenReturn(list);
+
+		String saveCategoryWithChildren = service.saveCategoryWithChildren(1, list);
+		assertEquals("Category Saved Succesfully", saveCategoryWithChildren);
+	}
+
+	@Test
+	public void testSaveCategoryWithChildren() {
+		Category category = new Category(1,"laptop","laptop");
+		Category sub = new Category("Memory",category);
+		List<Category> list=new ArrayList<>();
+		list.add(sub);
+		when(repo.findById(1)).thenReturn(Optional.empty());
+		ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, ()-> service.saveCategoryWithChildren(1, list));
+		assertEquals("Category Not Found With Id :"+category.getId(), exception.getMessage());
+	}
+
+	@Test
+	public void testGetCategories() {
+		Category category1 = new Category(1,"laptop","laptop");
+		Category category2 = new Category(2,"Memory","memory");
+		List<Category> list=new ArrayList<>();
+		list.add(category1);
+		list.add(category2);
+		List<String> names=new ArrayList<>();
+		names.add("laptop");
+		names.add("Memory");
+		when(repo.findAll()).thenReturn(list);
+		List<String> categories = service.getCategories();
+		assertEquals(names, categories);
+	}
+
+	@Test
+	public void testGetCategory() throws ResourceNotFoundException {
+		Category category1 = new Category(1,"laptop","laptop");
+		when(repo.findById(1)).thenReturn(Optional.of(category1));
+		Category category = service.getCategory(1);
+		assertEquals(category1, category);
+	}
+
+	@Test
+	public void testGetCategory_Failure() {
+		when(repo.findById(1)).thenReturn(Optional.empty());
+		ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,()->service.getCategory(1));
+		assertEquals("Category Not Exist with Id : "+1,exception.getMessage());
+	}
+
+	@Test
+	public void testUpdateCategory() throws ResourceNotFoundException {
+		Category exist = new Category(1,"laptop","laptop");
+		Category updated = new Category(1,"Laptop","Laptop");
+		when(repo.findById(1)).thenReturn(Optional.of(exist));
+		when(repo.save(any(Category.class))).thenReturn(updated);
+
+		String updateCategory = service.updateCategory(1, updated);
+		assertEquals("Category Updated Succesfully", updateCategory);
+	}
+
+	@Test
+	public void testUpdateCategory_Failure() {
+		Category updated = new Category(1,"Laptop","Laptop");
+		when(repo.findById(1)).thenReturn(Optional.empty());
+		ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,()->service.updateCategory(1, updated));
+		assertEquals("Category Not Exist with Id : "+1,exception.getMessage());
+	}
+	
+	@Test
+	public void testDeleteCategory() throws ResourceNotFoundException {
+		Category category = new Category(1,"laptop","laptop");
+		when(repo.findById(1)).thenReturn(Optional.of(category));
+		String message = service.deleteCategory(1);
+		assertEquals("Category Deleted Succesfully", message);
+	}
+	
+	@Test
+	public void testDeleteCategory_Failure() {
+		when(repo.findById(1)).thenReturn(Optional.empty());
+		ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, ()->service.deleteCategory(1));
+		assertEquals("Category Not Exist with Id : "+1, exception.getMessage());
+	}
+	
+	@Test
+	public void testCheckStatus_Success() {
+		Category category = new Category(1,"laptop","laptop");
+		when(repo.findById(1)).thenReturn(Optional.of(category));
+		assertTrue(service.changeStatus(1, true), "User should be active");
+	}
+	
+	@Test
+	public void testCheckStatus_Failure() {
+		when(repo.findById(1)).thenReturn(Optional.empty());
+		assertFalse(service.changeStatus(1, false));
+	}
+
+	@Test
+	public void testCheckUnique() {
+		Category category = new Category(1,"laptop","laptop");
+		when(repo.findByName(anyString())).thenReturn(category);
+		
+		String checkUnique = service.checkUnique("laptop", null);
+		assertEquals("Category Already Exist With Name : "+category.getName(), checkUnique);
+	}
+	
+	@Test
+	public void testCheckUnique_Name_Failure() {
+		when(repo.findByName(anyString())).thenReturn(null);
+		String checkUnique = service.checkUnique("lap", "laptop");
+		assertEquals("Unique Category", checkUnique);
+	}
+	
+	@Test
+	public void testCheckUnique_Alias_Failure() {
+		when(repo.findByAlias(anyString())).thenReturn(null);
+		String checkUnique = service.checkUnique("lap", "laptop");
+		assertEquals("Unique Category", checkUnique);
+	}
+	
+}

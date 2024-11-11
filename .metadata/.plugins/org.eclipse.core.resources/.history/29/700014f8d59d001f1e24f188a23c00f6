@@ -1,0 +1,23 @@
+package com.category.rest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.category.entity.Category;
+import com.category.service.CategoryService;
+
+@RestController
+public class CategoryController {
+	
+	@Autowired
+	private CategoryService service;
+	
+	public ResponseEntity<String> saveCategory(@RequestBody Category category){
+		String message = service.saveCategory(category);
+		return new ResponseEntity<>(message,HttpStatus.CREATED);
+	}
+
+}

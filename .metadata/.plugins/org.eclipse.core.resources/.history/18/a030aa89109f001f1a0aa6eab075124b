@@ -1,0 +1,17 @@
+package com.category.rest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+
+import com.category.service.CategoryService;
+
+@WebMvcTest(value=CategoryController.class)
+public class CategoryRestTest {
+	
+	@MockBean
+	private CategoryService service;
+	
+	
+
+}

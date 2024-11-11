@@ -1,0 +1,9 @@
+package com.category.exception;
+
+public class ResourceNotFoundException extends Exception{
+
+	ResourceNotFoundException(String str){
+		super(str);
+	}
+	
+}

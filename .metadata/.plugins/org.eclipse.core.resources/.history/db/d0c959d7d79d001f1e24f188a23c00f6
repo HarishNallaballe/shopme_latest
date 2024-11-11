@@ -1,0 +1,23 @@
+package com.category.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.category.entity.Category;
+import com.category.repo.CategoryRepo;
+
+@Service
+public class CategoryService {
+	
+	@Autowired
+	private CategoryRepo repo;
+	
+	public String saveCategory(Category category) {
+		Category saved = repo.save(category);
+		if(saved.getId()>0) {
+			return "Category Saved Succesfully";
+		}
+		return "Category Not Saved Succesfully";
+	}
+
+}

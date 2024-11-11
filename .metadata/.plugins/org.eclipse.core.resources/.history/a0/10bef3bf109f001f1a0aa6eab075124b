@@ -1,0 +1,5 @@
+package com.category.config;
+
+public class MapperConfig {
+
+}

@@ -1,0 +1,89 @@
+package com.category.rest;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import com.category.entity.Category;
+import com.category.service.CategoryService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@WebMvcTest(value=CategoryController.class)
+public class CategoryRestTest {
+	
+	@MockBean
+	private CategoryService service;
+	
+	@Autowired
+	private MockMvc mvc;
+	
+    private ObjectMapper objectMapper;
+    
+    @BeforeEach
+    void setUp() {
+        objectMapper = new ObjectMapper();  // Used for converting objects to JSON
+    }
+    
+    @Test
+    public void testSaveCategory() throws Exception {
+    	Category category = new Category(1,"laptop","laptop");
+    	when(service.saveCategory(category)).thenReturn("Category Saved Succesfully");
+    	
+    	MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.post("/api2/category");
+    	
+    	int status = mvc.perform(builder).andReturn().getResponse().getStatus();
+    	
+    	assertEquals(200, status);
+    }
+    
+    @Test
+    public void testSaveCategoryWithChildren() throws Exception {
+    	Category category = new Category(1,"laptop","laptop");
+    	Category sub = new Category("Memory",category);
+		List<Category> list=new ArrayList<>();
+		list.add(sub);
+		when(service.saveCategoryWithChildren(1, list)).thenReturn("Category Saved Succesfully");
+		
+		MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.post("/api2/category/children/1");
+		
+		int status = mvc.perform(builder).andReturn().getResponse().getStatus();
+		
+		assertEquals(200, status);
+		
+    }
+    
+    @Test
+    public void testUpdateCategory() throws Exception {
+    	Category exist = new Category(1,"laptop","laptop");
+    	when(service.updateCategory(1, exist)).thenReturn("Category Updated Succesfully");
+    	
+    	MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put("/api2/category/update/1");
+    	
+    	int status = mvc.perform(builder).andReturn().getResponse().getStatus();
+    	
+    	assertEquals(200, status);
+    }
+    
+    public void testGetCategories() {
+    	Category category = new Category(1,"laptop","laptop");
+    	List<String> list=new ArrayList<>();
+		list.add(category.getName());
+    	when(service.getCategories()).thenReturn(list);
+    }
+    
+    
+	
+	
+
+}

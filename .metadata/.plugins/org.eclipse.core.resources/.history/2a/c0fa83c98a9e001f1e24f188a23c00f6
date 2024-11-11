@@ -1,0 +1,16 @@
+package com.category.service;
+
+import org.mockito.InjectMocks;
+import org.springframework.boot.test.mock.mockito.MockBean;
+
+import com.category.repo.CategoryRepo;
+
+public class CategoryServiceTest {
+	
+	@MockBean
+	private CategoryRepo repo;
+	
+	@InjectMocks
+	private CategoryService service;
+
+}

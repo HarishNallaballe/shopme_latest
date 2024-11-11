@@ -1,0 +1,48 @@
+package com.category.service;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.expression.spel.ast.OpAnd;
+
+import com.category.entity.Category;
+import com.category.exception.ResourceNotFoundException;
+import com.category.repo.CategoryRepo;
+
+@SpringBootTest
+@ExtendWith(MockitoExtension.class)
+public class CategoryServiceTest {
+	
+	@Mock
+	private CategoryRepo repo;
+	
+	@InjectMocks
+	private CategoryService service;
+	
+	@Test
+	public void saveCategory_success() {
+		Category category = new Category(1,"laptop","laptop");
+		when(repo.save(category)).thenReturn(category);
+		
+		String message = service.saveCategory(category);
+		assertEquals("Category Saved Succesfully", message);
+	}
+	
+	@Test
+	public void saveCategory_Failure() {
+		Category category = new Category(1,"laptop","laptop");
+		when(repo.save(category)).thenReturn(null);
+		String saveCategory = service.saveCategory(category);
+		assertEquals("Category Not Saved Succesfully", saveCategory);
+	}
+
+}

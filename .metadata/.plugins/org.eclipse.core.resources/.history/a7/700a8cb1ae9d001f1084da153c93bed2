@@ -1,0 +1,52 @@
+package com.customer.service;
+
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.customer.entitty.Customer;
+import com.customer.exception.CustomerNotFoundException;
+import com.customer.repo.CustomerRepository;
+
+@Service
+public class CustomerService {
+	
+	@Autowired
+	private CustomerRepository repo;
+	
+	public String saveCustomer(Customer customer) {
+		Customer save = repo.save(customer);
+		return save.getId()>0?"User Saved":"User Not Saved";
+	}
+	
+	public Customer getCustomer(Integer id) throws CustomerNotFoundException {
+		 Customer customer = repo.findById(id).orElseThrow(()-> new CustomerNotFoundException("Customer Not Exist"));
+		return customer;
+	}
+	
+	public String updateCustomer(Integer id,Customer customer) throws CustomerNotFoundException {
+		Optional<Customer> findById = repo.findById(id);
+		if(findById.isPresent()) {
+			Customer cus = findById.get();
+			cus.setEmail(customer.getEmail());
+			cus.setName(customer.getName());
+			cus.setPassword(customer.getPassword());
+			cus.setRoles(customer.getRoles());
+			cus.setStatus(customer.getStatus());
+			repo.save(cus);
+			return "Customer Updated Succesfully";
+		}else {
+			throw new CustomerNotFoundException("Customer Not Exist with Id :"+id);
+		}
+	}
+	
+	public String deleteCustomer(Integer id) {
+		Optional<Customer> findById = repo.findById(id);
+		if(findById.isPresent()) {
+			Customer customer = findById.get();
+			repo.delete(customer);
+		}
+	}
+
+}

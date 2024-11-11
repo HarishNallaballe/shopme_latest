@@ -1,0 +1,55 @@
+package com.customer.service;
+
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import com.customer.entitty.Customer;
+import com.customer.exception.CustomerNotFoundException;
+import com.customer.repo.CustomerRepository;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@SpringBootTest
+@ExtendWith(MockitoExtension.class)
+public class CustomerServiceTest {
+	
+	@Mock
+	private CustomerRepository repo;
+	
+	@InjectMocks
+	private CustomerService service;
+	
+	
+	@Test
+	public void getUserById_UserExists_ReturnUser() throws CustomerNotFoundException {
+		Customer customer1 = new Customer(1, "John Doe", "john@gmail.com.com","Harish@123","active");
+		when(repo.findById(1)).thenReturn(Optional.of(customer1));
+		Customer customer = service.getCustomer(1);
+		assertEquals(customer.getName(), customer1.getName());
+		assertNotNull(customer);
+		assertEquals(customer1.getId(), customer.getId());
+	}
+	
+	@Test
+	public void getUserById_UserNotExists_ThroeException() {
+		when(repo.findById(1)).thenReturn(Optional.empty());
+		assertThrows(CustomerNotFoundException.class,()->service.getCustomer(1));
+	}
+	
+	@Test
+	public void saveCustomer_ReturnUser() {
+		Customer customer = new Customer(1, "John Doe", "john@gmail.com.com","Harish@123","active");
+		when(repo.save(customer)).thenReturn(customer);
+		String saveCustomer = service.saveCustomer(customer);
+		assertEquals("User Saved", saveCustomer);
+	}
+
+}

@@ -1,0 +1,82 @@
+package com.customer.rest;
+
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.wavefront.WavefrontProperties.Application;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import com.customer.entitty.Customer;
+import com.customer.service.CustomerService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@WebMvcTest(value=CustomerController.class)
+public class CustomerControllerTest {
+	
+	@MockBean
+	private CustomerService service;
+	
+	@Autowired
+	private MockMvc mvc;
+	
+    private ObjectMapper objectMapper;
+    
+    @BeforeEach
+    void setUp() {
+        objectMapper = new ObjectMapper();  // Used for converting objects to JSON
+    }
+	
+	@Test
+	public void getUserTest() throws Exception {
+		Customer customer = new Customer(1, "John Doe", "john@gmail.com.com","Harish@123","active");
+		when(service.getCustomer(1)).thenReturn(customer);
+		MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.get("/customer/{id}",1);
+		MockHttpServletResponse response = mvc.perform(builder).andReturn().getResponse();
+		int status = response.getStatus();
+		assertEquals(200, status);
+	}
+	
+	@Test
+	public void testSaveUser_Success() throws JsonProcessingException, Exception {
+		Customer customer = new Customer(1, "John Doe", "john@gmail.com.com","Harish@123","active");
+		
+		when(service.saveCustomer(customer)).thenReturn("User Saved");
+		
+		MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.post("/customer");
+		
+		mvc.perform(requestBuilder.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(customer)))
+		.andExpect(status().isOk());
+	}
+	
+	@Test
+	public void testUpdateUser() throws Exception {
+		Customer customer = new Customer(1, "John Doe", "john@gmail.com.com","Harish@123","active");
+		when(service.updateCustomer(1, customer)).thenReturn("Customer Updated Succesfully");
+		
+		MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put("/customer/update/{id}",1);
+		
+		MockHttpServletResponse response = mvc.perform(builder).andReturn().getResponse();
+		
+		int status = response.getStatus();
+		assertEquals(200, status);
+	}
+
+}
